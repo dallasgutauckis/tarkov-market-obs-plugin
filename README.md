@@ -1,59 +1,121 @@
-# OBS Plugin Template
+# Tarkuck - Escape from Tarkov Item Price Overlay
 
-## Introduction
+Tarkuck is an OBS Studio plugin that automatically detects items in Escape from Tarkov and displays their current market prices in real-time. This helps players make quick decisions about which items to loot based on their market value.
 
-The plugin template is meant to be used as a starting point for OBS Studio plugin development. It includes:
+## Features
 
-* Boilerplate plugin source code
-* A CMake project file
-* GitHub Actions workflows and repository actions
+- **Real-time item detection**: Identifies items in your game using computer vision
+- **Accurate pricing**: Fetches up-to-date prices from the Tarkov Market API
+- **Customizable overlay**: Configure colors, fonts, and display options
+- **Minimum value threshold**: Only show prices for items above a certain value
+- **Performance optimized**: Minimal impact on game and streaming performance
+- **Automatic template downloading**: One-click download of all item templates from the API
 
-## Supported Build Environments
+## Installation
 
-| Platform  | Tool   |
-|-----------|--------|
-| Windows   | Visal Studio 17 2022 |
-| macOS     | XCode 16.0 |
-| Windows, macOS  | CMake 3.30.5 |
-| Ubuntu 24.04 | CMake 3.28.3 |
-| Ubuntu 24.04 | `ninja-build` |
-| Ubuntu 24.04 | `pkg-config`
-| Ubuntu 24.04 | `build-essential` |
+### Prerequisites
 
-## Quick Start
+- OBS Studio (version 27.0 or higher)
+- Escape from Tarkov
+- A Tarkov Market API key (get one at [tarkov-market.app](https://tarkov-market.app/))
 
-An absolute bare-bones [Quick Start Guide](https://github.com/obsproject/obs-plugintemplate/wiki/Quick-Start-Guide) is available in the wiki.
+### Install Steps
 
-## Documentation
+1. Download the latest release from the [Releases](https://github.com/yourusername/tarkuck/releases) page
+2. Extract the zip file to your OBS plugins directory:
+   - Windows: `C:\Program Files\obs-studio\obs-plugins\64bit`
+   - macOS: `/Applications/OBS.app/Contents/PlugIns`
+   - Linux: `/usr/lib/obs-plugins` or `~/.config/obs-studio/plugins`
+3. Restart OBS Studio
 
-All documentation can be found in the [Plugin Template Wiki](https://github.com/obsproject/obs-plugintemplate/wiki).
+## Usage
 
-Suggested reading to get up and running:
+1. Add a Game Capture source for Escape from Tarkov
+2. Right-click on the source and select Filters
+3. Click the "+" button and select "Tarkov Item Price Overlay"
+4. Enter your Tarkov Market API key
+5. Click "Download Item Templates" to get all the latest item images
+6. Configure the settings to your preference:
+   - Minimum Value Threshold: Only show items above this value
+   - Detection Threshold: Adjust sensitivity of item detection
+   - Enable Highlighting: Toggle item highlighting
+   - Enable Tooltips: Toggle price tooltips
+   - Customize colors and font sizes
 
-* [Getting started](https://github.com/obsproject/obs-plugintemplate/wiki/Getting-Started)
-* [Build system requirements](https://github.com/obsproject/obs-plugintemplate/wiki/Build-System-Requirements)
-* [Build system options](https://github.com/obsproject/obs-plugintemplate/wiki/CMake-Build-System-Options)
+## Configuration
 
-## GitHub Actions & CI
+The plugin provides several configuration options:
 
-Default GitHub Actions workflows are available for the following repository actions:
+- **API Key**: Your Tarkov Market API key
+- **Minimum Value Threshold**: Only display items worth more than this amount (in roubles)
+- **Detection Threshold**: Controls the sensitivity of item detection (0.0-1.0)
+- **Download Item Templates**: Downloads all item icons from the Tarkov Market API
+- **Highlight Enabled**: Toggle whether to highlight detected items
+- **Tooltip Enabled**: Toggle whether to show price tooltips
+- **Highlight Color**: Color for item highlighting
+- **Tooltip Font Size**: Size of the price tooltip text
+- **Tooltip Font Color**: Color for the price tooltip text
 
-* `push`: Run for commits or tags pushed to `master` or `main` branches.
-* `pr-pull`: Run when a Pull Request has been pushed or synchronized.
-* `dispatch`: Run when triggered by the workflow dispatch in GitHub's user interface.
-* `build-project`: Builds the actual project and is triggered by other workflows.
-* `check-format`: Checks CMake and plugin source code formatting and is triggered by other workflows.
+## Template Management
 
-The workflows make use of GitHub repository actions (contained in `.github/actions`) and build scripts (contained in `.github/scripts`) which are not needed for local development, but might need to be adjusted if additional/different steps are required to build the plugin.
+Tarkuck uses template matching to detect items. Templates are stored in the `data/templates` directory. Each template is a PNG image named after the item's unique ID from the Tarkov Market API.
 
-### Retrieving build artifacts
+### Automatic Template Download
 
-Successful builds on GitHub Actions will produce build artifacts that can be downloaded for testing. These artifacts are commonly simple archives and will not contain package installers or installation programs.
+The plugin provides an automated way to download all item templates:
 
-### Building a Release
+1. Enter your API key in the settings
+2. Click the "Download Item Templates" button
+3. Wait for the download to complete (this may take a few minutes)
+4. The templates will be automatically loaded and ready to use
 
-To create a release, an appropriately named tag needs to be pushed to the `main`/`master` branch using semantic versioning (e.g., `12.3.4`, `23.4.5-beta2`). A draft release will be created on the associated repository with generated installer packages or installation programs attached as release artifacts.
+### Custom Templates
 
-## Signing and Notarizing on macOS
+If you want to add your own custom templates:
 
-Basic concepts of codesigning and notarization on macOS are explained in the correspodning [Wiki article](https://github.com/obsproject/obs-plugintemplate/wiki/Codesigning-On-macOS) which has a specific section for the [GitHub Actions setup](https://github.com/obsproject/obs-plugintemplate/wiki/Codesigning-On-macOS#setting-up-code-signing-for-github-actions).
+1. Take a screenshot of the item in-game
+2. Crop the image tightly around the item icon
+3. Convert to a PNG file and name it with the item's UID (e.g., `5c0e531d86f7747fa23f4d42.png`)
+4. Place the image in the `data/templates` directory
+5. Restart the plugin or reload OBS
+
+## Troubleshooting
+
+- **No items detected**: Try adjusting the Detection Threshold, or check that your templates are correctly formatted
+- **Wrong prices displayed**: Make sure your API key is valid and that you have a stable internet connection
+- **Plugin crashes**: Check the OBS log for details and report the issue on GitHub
+- **Templates not downloading**: Verify your internet connection and API key, then try again
+
+## Building from Source
+
+### Prerequisites
+
+- Rust toolchain (1.55 or later)
+- CMake (3.15 or later)
+- OpenCV development libraries
+- OBS Studio development headers
+
+### Build Steps
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/tarkuck.git
+   cd tarkuck
+   ```
+
+2. Build the plugin:
+   ```
+   cargo build --release
+   ```
+
+3. The compiled plugin will be in `target/release`
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [Tarkov Market](https://tarkov-market.app/) for providing the item price API
+- [OpenCV](https://opencv.org/) for computer vision algorithms
+- [OBS Studio](https://obsproject.com/) for the streaming platform
