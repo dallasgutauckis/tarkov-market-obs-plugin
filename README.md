@@ -1,5 +1,6 @@
 # Tarkov Price Overlay
 
+
 Tarkov Price Overlay is an OBS Studio plugin that automatically detects items in Escape from Tarkov and displays their current market prices in real-time. This helps players make quick decisions about which items to loot based on their market value.
 
 ## Features
