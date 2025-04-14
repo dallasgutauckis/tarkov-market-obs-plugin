@@ -1,6 +1,6 @@
-# Tarkuck - Escape from Tarkov Item Price Overlay
+# Tarkov Price Overlay
 
-Tarkuck is an OBS Studio plugin that automatically detects items in Escape from Tarkov and displays their current market prices in real-time. This helps players make quick decisions about which items to loot based on their market value.
+Tarkov Price Overlay is an OBS Studio plugin that automatically detects items in Escape from Tarkov and displays their current market prices in real-time. This helps players make quick decisions about which items to loot based on their market value.
 
 ## Features
 
@@ -21,7 +21,7 @@ Tarkuck is an OBS Studio plugin that automatically detects items in Escape from 
 
 ### Install Steps
 
-1. Download the latest release from the [Releases](https://github.com/yourusername/tarkuck/releases) page
+1. Download the latest release from the [Releases](https://github.com/yourusername/tarkov-price-overlay/releases) page
 2. Extract the zip file to your OBS plugins directory:
    - Windows: `C:\Program Files\obs-studio\obs-plugins\64bit`
    - macOS: `/Applications/OBS.app/Contents/PlugIns`
@@ -58,7 +58,7 @@ The plugin provides several configuration options:
 
 ## Template Management
 
-Tarkuck uses template matching to detect items. Templates are stored in the `data/templates` directory. Each template is a PNG image named after the item's unique ID from the Tarkov Market API.
+The plugin uses template matching to detect items. Templates are stored in the `data/templates` directory. Each template is a PNG image named after the item's unique ID from the Tarkov Market API.
 
 ### Automatic Template Download
 

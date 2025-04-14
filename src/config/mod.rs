@@ -17,28 +17,31 @@ pub enum ConfigError {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
     pub api_key: String,
-    pub min_value_threshold: i32,
+    pub min_value: u32,
+    pub detection_threshold: f32,
     pub highlight_enabled: bool,
     pub tooltip_enabled: bool,
-    pub detection_threshold: f64,
     pub highlight_color: [f32; 4],
-    pub tooltip_font_size: f32,
+    pub tooltip_font_size: u32,
     pub tooltip_font_color: [f32; 4],
-    pub config_path: Option<PathBuf>,
+    pub data_dir: PathBuf,
 }
 
 impl Default for Config {
     fn default() -> Self {
+        let mut data_dir = dirs::config_dir().unwrap_or_else(|| PathBuf::from("."));
+        data_dir.push("tarkov-price-overlay");
+        
         Self {
-            api_key: "mZbkuqAnVhn3YDV6".to_string(),
-            min_value_threshold: 100_000,
+            api_key: String::new(),
+            min_value: 10000,
+            detection_threshold: 0.8,
             highlight_enabled: true,
             tooltip_enabled: true,
-            detection_threshold: 0.8,
-            highlight_color: [0.0, 1.0, 0.0, 0.5], // Green with 50% opacity
-            tooltip_font_size: 0.5,
-            tooltip_font_color: [1.0, 1.0, 1.0, 1.0], // White
-            config_path: None,
+            highlight_color: [1.0, 0.0, 0.0, 0.5],
+            tooltip_font_size: 16,
+            tooltip_font_color: [1.0, 1.0, 1.0, 1.0],
+            data_dir,
         }
     }
 }
@@ -48,13 +51,13 @@ impl Config {
         if self.api_key.is_empty() {
             return Err(ConfigError::ValidationError("API key cannot be empty".into()));
         }
-        if self.min_value_threshold < 0 {
+        if self.min_value < 0 {
             return Err(ConfigError::ValidationError("Minimum value threshold cannot be negative".into()));
         }
         if self.detection_threshold < 0.0 || self.detection_threshold > 1.0 {
             return Err(ConfigError::ValidationError("Detection threshold must be between 0 and 1".into()));
         }
-        if self.tooltip_font_size <= 0.0 {
+        if self.tooltip_font_size <= 0 {
             return Err(ConfigError::ValidationError("Tooltip font size must be positive".into()));
         }
         Ok(())
@@ -80,14 +83,13 @@ impl Config {
         let path = PathBuf::from(path);
         let config_str = std::fs::read_to_string(&path)?;
         let mut config: Config = serde_json::from_str(&config_str)?;
-        config.config_path = Some(path);
+        config.data_dir = path;
         config.validate()?;
         Self::set(config)
     }
 
     pub fn save_to_file(&self) -> Result<(), ConfigError> {
-        let path = self.config_path.as_ref()
-            .ok_or_else(|| ConfigError::ValidationError("No config file path set".into()))?;
+        let path = self.data_dir.as_path();
         let config_str = serde_json::to_string_pretty(self)?;
         std::fs::write(path, config_str)?;
         Ok(())
@@ -95,7 +97,7 @@ impl Config {
 
     pub fn get_default_config_path() -> PathBuf {
         let mut path = dirs::config_dir().unwrap_or_else(|| PathBuf::from("."));
-        path.push("tarkuck");
+        path.push("tarkov-price-overlay");
         path.push("config.json");
         path
     }

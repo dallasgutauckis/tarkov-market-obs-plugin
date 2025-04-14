@@ -29,41 +29,41 @@ pub extern "C" fn obs_register_source(_info: *mut obs_source_info) {
 }
 
 // Plugin data structure - empty for our simple mock
-struct TarkuckData {}
+struct TarkovPriceOverlayData {}
 
 // Plugin API functions
-extern "C" fn tarkuck_get_name(_data: *mut c_void) -> *const c_char {
+extern "C" fn tarkov_price_overlay_get_name(_data: *mut c_void) -> *const c_char {
     CString::new("Tarkov Item Price Overlay").unwrap().into_raw()
 }
 
-extern "C" fn tarkuck_create(_settings: *mut c_void, _source: *mut c_void) -> *mut c_void {
-    let data = Box::new(TarkuckData {});
+extern "C" fn tarkov_price_overlay_create(_settings: *mut c_void, _source: *mut c_void) -> *mut c_void {
+    let data = Box::new(TarkovPriceOverlayData {});
     Box::into_raw(data) as *mut c_void
 }
 
-extern "C" fn tarkuck_destroy(data: *mut c_void) {
+extern "C" fn tarkov_price_overlay_destroy(data: *mut c_void) {
     if !data.is_null() {
         unsafe {
             // We need to drop the box to avoid memory leaks
-            drop(Box::from_raw(data as *mut TarkuckData));
+            drop(Box::from_raw(data as *mut TarkovPriceOverlayData));
         }
     }
 }
 
-extern "C" fn tarkuck_get_properties(_data: *mut c_void) -> *mut c_void {
+extern "C" fn tarkov_price_overlay_get_properties(_data: *mut c_void) -> *mut c_void {
     std::ptr::null_mut()
 }
 
 #[no_mangle]
 pub extern "C" fn obs_module_load() -> bool {
     let mut info = obs_source_info {
-        id: CString::new("tarkuck").unwrap().into_raw(),
+        id: CString::new("tarkov-price-overlay").unwrap().into_raw(),
         type_: OBS_SOURCE_TYPE_FILTER,
         output_flags: OBS_SOURCE_VIDEO | OBS_SOURCE_ASYNC,
-        get_name: Some(tarkuck_get_name),
-        create: Some(tarkuck_create),
-        destroy: Some(tarkuck_destroy),
-        get_properties: Some(tarkuck_get_properties),
+        get_name: Some(tarkov_price_overlay_get_name),
+        create: Some(tarkov_price_overlay_create),
+        destroy: Some(tarkov_price_overlay_destroy),
+        get_properties: Some(tarkov_price_overlay_get_properties),
         update: None,
         video_render: None,
         _padding: [0; 20],
@@ -74,7 +74,7 @@ pub extern "C" fn obs_module_load() -> bool {
     }
     
     // Print a message to show the plugin is loading
-    eprintln!("Tarkuck plugin loaded successfully!");
+    eprintln!("Tarkov Price Overlay plugin loaded successfully!");
     true
 }
 
@@ -90,7 +90,7 @@ pub extern "C" fn obs_module_set_pointer(_ptr: *mut c_void) {}
 
 #[no_mangle]
 pub extern "C" fn obs_module_name() -> *const c_char {
-    CString::new("Tarkuck - Tarkov Item Price Overlay").unwrap().into_raw()
+    CString::new("Tarkov Item Price Overlay").unwrap().into_raw()
 }
 
 #[no_mangle]
@@ -100,7 +100,7 @@ pub extern "C" fn obs_module_description() -> *const c_char {
 
 #[no_mangle]
 pub extern "C" fn obs_module_author() -> *const c_char {
-    CString::new("Tarkuck Developers").unwrap().into_raw()
+    CString::new("Tarkov Price Overlay Developers").unwrap().into_raw()
 }
 
 // Support functions for OBS
@@ -112,5 +112,5 @@ pub extern "C" fn obs_module_set_locale(_locale: *const c_char) {}
 
 #[no_mangle]
 pub extern "C" fn obs_module_unload() {
-    eprintln!("Tarkuck plugin unloaded!");
+    eprintln!("Tarkov Price Overlay plugin unloaded!");
 }

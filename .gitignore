@@ -29,3 +29,35 @@
 # Added by cargo
 
 /target
+
+# Rust build artifacts
+**/*.rs.bk
+Cargo.lock
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OBS plugin specific
+/data/templates/
+*.dylib
+*.so
+*.dll
+*.pdb
+
+# OS specific
+Thumbs.db
+
+# Debug files
+*.log
+*.tmp
+
+# Build output
+dist/
+release/
+
+# Local configuration
+config.json
+*.local.json
