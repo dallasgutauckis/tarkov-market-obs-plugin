@@ -86,29 +86,40 @@ If you want to add your own custom templates:
 - **Plugin crashes**: Check the OBS log for details and report the issue on GitHub
 - **Templates not downloading**: Verify your internet connection and API key, then try again
 
-## Building from Source
+## Building with Rust
+
+This project has been partially converted from C/C++ to Rust. The Rust code compiles to a shared library that interfaces with OBS.
 
 ### Prerequisites
 
-- Rust toolchain (1.55 or later)
-- CMake (3.15 or later)
-- OpenCV development libraries
-- OBS Studio development headers
+- [Rust](https://www.rust-lang.org/tools/install)
+- Cargo (comes with Rust)
 
-### Build Steps
+### Building Locally
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/tarkuck.git
-   cd tarkuck
-   ```
+```bash
+# Debug build
+cargo build
 
-2. Build the plugin:
-   ```
-   cargo build --release
-   ```
+# Release build
+cargo build --release
+```
 
-3. The compiled plugin will be in `target/release`
+The output library will be in `target/debug/` or `target/release/` depending on your build type.
+
+### GitHub Actions
+
+The project uses GitHub Actions for CI/CD:
+
+1. **Rust Build Workflow**: Builds the Rust code for multiple platforms (Linux and macOS, both x86_64 and arm64 for macOS).
+2. **Format Check**: Ensures code formatting matches the project's standards using rustfmt.
+3. **Release Process**: Automatically builds and packages the project when a tag is pushed.
+
+#### Running Tests
+
+```bash
+cargo test
+```
 
 ## License
 

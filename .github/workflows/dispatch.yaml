@@ -9,10 +9,20 @@ on:
         type: choice
         options:
           - build
+          - lint
+          - audit
 permissions:
   contents: write
 jobs:
   check-and-build:
     if: inputs.job == 'build'
-    uses: ./.github/workflows/build-project.yaml
+    uses: ./.github/workflows/rust-build.yaml
     secrets: inherit
+    
+  run-lint:
+    if: inputs.job == 'lint'
+    uses: ./.github/workflows/rust-lint.yaml
+    
+  run-audit:
+    if: inputs.job == 'audit'
+    uses: ./.github/workflows/rust-audit.yaml
