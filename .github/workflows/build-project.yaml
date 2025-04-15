@@ -205,10 +205,15 @@ jobs:
 
       - name: Install OBS Studio Development Libraries 📚
         run: |
+          # Add OBS Studio PPA
+          sudo add-apt-repository -y ppa:obsproject/obs-studio
           sudo apt-get update
-          sudo apt-get install -y libobs-dev libobs-ui-dev
-          # Set PKG_CONFIG_PATH to include OBS Studio pkg-config directory
-          echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig" >> $GITHUB_ENV
+          # Install OBS Studio and development libraries
+          sudo apt-get install -y obs-studio libobs-dev libobs-ui-dev
+          # List installed OBS files
+          dpkg -L libobs-dev | grep pkgconfig
+          # Set PKG_CONFIG_PATH to include all possible pkg-config directories
+          echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib64/pkgconfig" >> $GITHUB_ENV
           echo "PKG_CONFIG_PATH set to: $PKG_CONFIG_PATH"
           # Verify pkg-config can find libobs
           pkg-config --libs --cflags libobs
