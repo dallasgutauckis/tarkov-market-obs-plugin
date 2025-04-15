@@ -174,33 +174,44 @@ jobs:
           fi
           
           # Install build dependencies
-          brew install cmake pkg-config qt@6
+          brew install cmake pkg-config
           
-          # Clone and build OBS Studio
-          git clone --recursive https://github.com/obsproject/obs-studio.git
-          cd obs-studio
-          mkdir build && cd build
+          # Download and extract OBS Studio
+          OBS_VERSION="30.0.2"
+          curl -L "https://github.com/obsproject/obs-studio/releases/download/${OBS_VERSION}/obs-studio-${OBS_VERSION}-macos-arm64.dmg" -o obs-studio.dmg
+          hdiutil attach obs-studio.dmg
+          sudo cp -R "/Volumes/OBS Studio ${OBS_VERSION}/OBS.app" /Applications/
+          hdiutil detach "/Volumes/OBS Studio ${OBS_VERSION}"
           
-          # Configure with Xcode generator
-          cmake -G Xcode \
-            -DCMAKE_INSTALL_PREFIX=/usr/local \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES=arm64 \
-            ..
+          # Extract development files from the app bundle
+          mkdir -p /usr/local/include/obs
+          mkdir -p /usr/local/lib
+          cp -R "/Applications/OBS.app/Contents/Frameworks/libobs.framework/Headers/"* /usr/local/include/obs/
+          cp "/Applications/OBS.app/Contents/Frameworks/libobs.framework/libobs" /usr/local/lib/libobs.dylib
           
-          # Build using xcodebuild
-          xcodebuild -configuration Release
-          sudo xcodebuild -configuration Release install
+          # Create pkg-config file
+          cat > /usr/local/lib/pkgconfig/libobs.pc << EOF
+          prefix=/usr/local
+          exec_prefix=\${prefix}
+          libdir=\${exec_prefix}/lib
+          includedir=\${prefix}/include
+
+          Name: libobs
+          Description: OBS Studio library
+          Version: ${OBS_VERSION}
+          Libs: -L\${libdir} -lobs
+          Cflags: -I\${includedir}
+          EOF
           
           # Find and verify libobs location
           echo "Searching for OBS libraries..."
           find /usr/local -name "libobs*" -type f
           
           # Set LIBOBS_PATH for macOS
-          OBS_LIB_PATH=$(find /usr/local -name "libobs.dylib" -type f | head -n 1)
-          if [ -n "$OBS_LIB_PATH" ]; then
+          OBS_LIB_PATH="/usr/local/lib/libobs.dylib"
+          if [ -f "$OBS_LIB_PATH" ]; then
             echo "Found OBS library at: $OBS_LIB_PATH"
-            echo "LIBOBS_PATH=$(dirname "$OBS_LIB_PATH")" >> $GITHUB_ENV
+            echo "LIBOBS_PATH=/usr/local/lib" >> $GITHUB_ENV
           else
             echo "Error: Could not find OBS library"
             exit 1
