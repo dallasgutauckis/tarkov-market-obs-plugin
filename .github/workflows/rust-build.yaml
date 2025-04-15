@@ -29,6 +29,8 @@ jobs:
           echo "GitHub workspace: $GITHUB_WORKSPACE"
           echo "Repository contents:"
           ls -la
+          echo "Parent directory contents:"
+          ls -la ..
           echo "Root directory contents:"
           ls -la /
           echo "Home directory contents:"
@@ -45,6 +47,8 @@ jobs:
           # Ensure we're in the correct directory
           cd $GITHUB_WORKSPACE
           echo "Current directory after cd: $(pwd)"
+          echo "Current directory contents:"
+          ls -la
           echo "Cargo.toml contents:"
           cat Cargo.toml || echo "Cargo.toml not found"
 
