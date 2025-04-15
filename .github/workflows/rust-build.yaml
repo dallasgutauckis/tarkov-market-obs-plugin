@@ -120,11 +120,8 @@ jobs:
           sudo apt-get install -y \
             obs-studio \
             libobs-dev \
-            libobs-ui-dev \
             libobs0 \
-            libobs0-dev \
-            libobs-0.0.0 \
-            libobs-0.0.0-dev
+            libobs0-dev
 
           # Verify installation
           echo "Checking installed OBS packages:"
