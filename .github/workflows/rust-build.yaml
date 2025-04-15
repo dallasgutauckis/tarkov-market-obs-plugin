@@ -163,6 +163,37 @@ jobs:
           echo "Environment variables:"
           env | grep -E "PKG_CONFIG|LIBOBS"
           
+      - name: Install OBS Studio Development Libraries 📚
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: |
+          # Install Homebrew if not already installed
+          if ! command -v brew &> /dev/null; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+          fi
+          
+          # Install OBS Studio and development libraries
+          brew install obs-studio
+          
+          # Find and verify libobs location
+          echo "Searching for OBS libraries..."
+          find /opt/homebrew -name "libobs*" -type f
+          
+          # Set LIBOBS_PATH for macOS
+          OBS_LIB_PATH=$(find /opt/homebrew -name "libobs.dylib" -type f | head -n 1)
+          if [ -n "$OBS_LIB_PATH" ]; then
+            echo "Found OBS library at: $OBS_LIB_PATH"
+            echo "LIBOBS_PATH=$(dirname "$OBS_LIB_PATH")" >> $GITHUB_ENV
+          else
+            echo "Error: Could not find OBS library"
+            exit 1
+          fi
+          
+          # Print environment variables
+          echo "Environment variables:"
+          env | grep -E "LIBOBS"
+          
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         
