@@ -176,12 +176,9 @@ jobs:
           # Install build dependencies
           brew install cmake pkg-config
           
-          # Download and extract OBS Studio
-          OBS_VERSION="30.0.2"
-          curl -L "https://github.com/obsproject/obs-studio/releases/download/${OBS_VERSION}/obs-studio-${OBS_VERSION}-macos-arm64.dmg" -o obs-studio.dmg
-          hdiutil attach obs-studio.dmg
-          sudo cp -R "/Volumes/OBS Studio ${OBS_VERSION}/OBS.app" /Applications/
-          hdiutil detach "/Volumes/OBS Studio ${OBS_VERSION}"
+          # Install OBS Studio and development files
+          brew tap homebrew/cask
+          brew install --cask obs-studio
           
           # Extract development files from the app bundle
           mkdir -p /usr/local/include/obs
@@ -198,7 +195,7 @@ jobs:
 
           Name: libobs
           Description: OBS Studio library
-          Version: ${OBS_VERSION}
+          Version: 30.0.2
           Libs: -L\${libdir} -lobs
           Cflags: -I\${includedir}
           EOF
