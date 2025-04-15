@@ -175,9 +175,11 @@ jobs:
           export CPPFLAGS="-I/opt/homebrew/opt/qt@6/include"
           export PKG_CONFIG_PATH="/opt/homebrew/opt/qt@6/lib/pkgconfig"
           
-          # Clone OBS Studio
+          # Clone OBS Studio with specific version
           git clone --recursive https://github.com/obsproject/obs-studio.git
           cd obs-studio
+          git checkout 29.1.3  # Use a version compatible with Xcode 15.4
+          git submodule update --init --recursive
           
           # Create build directory and configure
           mkdir build && cd build
