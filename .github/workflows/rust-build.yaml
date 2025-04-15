@@ -166,57 +166,20 @@ jobs:
       - name: Install OBS Studio Development Libraries 📚
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
-          # Install Homebrew if not already installed
-          if ! command -v brew &> /dev/null; then
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-          fi
-          
           # Install build dependencies
-          brew install cmake pkg-config
-          
-          # Install OBS Studio and development files
-          brew tap homebrew/cask
-          brew install --cask obs-studio
-          
-          # Extract development files from the app bundle
-          mkdir -p /usr/local/include/obs
-          mkdir -p /usr/local/lib
-          cp -R "/Applications/OBS.app/Contents/Frameworks/libobs.framework/Headers/"* /usr/local/include/obs/
-          cp "/Applications/OBS.app/Contents/Frameworks/libobs.framework/libobs" /usr/local/lib/libobs.dylib
-          
-          # Create pkg-config file
-          cat > /usr/local/lib/pkgconfig/libobs.pc << EOF
-          prefix=/usr/local
-          exec_prefix=\${prefix}
-          libdir=\${exec_prefix}/lib
-          includedir=\${prefix}/include
+          brew install cmake ninja qt@6 swig
 
-          Name: libobs
-          Description: OBS Studio library
-          Version: 30.0.2
-          Libs: -L\${libdir} -lobs
-          Cflags: -I\${includedir}
-          EOF
+          # Clone OBS Studio
+          git clone --recursive https://github.com/obsproject/obs-studio.git
+          cd obs-studio
+
+          # Run the macOS build script
+          CI/macos/01_install_dependencies.sh
+          CI/macos/02_build_obs.sh
           
-          # Find and verify libobs location
-          echo "Searching for OBS libraries..."
-          find /usr/local -name "libobs*" -type f
-          
-          # Set LIBOBS_PATH for macOS
-          OBS_LIB_PATH="/usr/local/lib/libobs.dylib"
-          if [ -f "$OBS_LIB_PATH" ]; then
-            echo "Found OBS library at: $OBS_LIB_PATH"
-            echo "LIBOBS_PATH=/usr/local/lib" >> $GITHUB_ENV
-          else
-            echo "Error: Could not find OBS library"
-            exit 1
-          fi
-          
-          # Print environment variables
-          echo "Environment variables:"
-          env | grep -E "LIBOBS"
+          # Set environment variables
+          echo "LIBOBS_PATH=/usr/local/lib" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig" >> $GITHUB_ENV
           
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
