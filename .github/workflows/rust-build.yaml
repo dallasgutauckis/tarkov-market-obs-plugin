@@ -169,17 +169,35 @@ jobs:
           # Install build dependencies
           brew install cmake ninja qt@6 swig
 
+          # Add Qt to PATH
+          echo "/opt/homebrew/opt/qt@6/bin" >> $GITHUB_PATH
+          export LDFLAGS="-L/opt/homebrew/opt/qt@6/lib"
+          export CPPFLAGS="-I/opt/homebrew/opt/qt@6/include"
+          export PKG_CONFIG_PATH="/opt/homebrew/opt/qt@6/lib/pkgconfig"
+
           # Clone OBS Studio
           git clone --recursive https://github.com/obsproject/obs-studio.git
           cd obs-studio
 
-          # Run the macOS build script
-          CI/macos/01_install_dependencies.sh
-          CI/macos/02_build_obs.sh
+          # Create build directory and configure
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+                -DENABLE_BROWSER=OFF \
+                -DENABLE_WEBSOCKET=OFF \
+                -DENABLE_PLUGINS=OFF \
+                -DENABLE_UI=OFF \
+                -DENABLE_SCRIPTING=OFF \
+                -DQTDIR=/opt/homebrew/opt/qt@6 \
+                -GNinja \
+                ..
+
+          # Build and install
+          ninja
+          sudo ninja install
           
           # Set environment variables
           echo "LIBOBS_PATH=/usr/local/lib" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/opt/homebrew/opt/qt@6/lib/pkgconfig" >> $GITHUB_ENV
           
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
