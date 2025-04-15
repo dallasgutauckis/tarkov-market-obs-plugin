@@ -167,7 +167,7 @@ jobs:
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
           # Install OBS Studio and development libraries using Homebrew
-          brew install --cask obs-studio
+          brew install --cask obs
           
           # Set environment variables
           echo "LIBOBS_PATH=/opt/homebrew/lib" >> $GITHUB_ENV
