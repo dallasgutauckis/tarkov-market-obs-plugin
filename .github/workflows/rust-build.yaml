@@ -108,6 +108,56 @@ jobs:
           targets: ${{ matrix.target }}
           
       - name: Install OBS Studio Development Libraries 📚
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
+        run: |
+          # Add OBS Studio PPA
+          sudo add-apt-repository -y ppa:obsproject/obs-studio
+          sudo apt-get update
+          
+          # List available OBS packages and versions
+          echo "Available OBS packages and versions:"
+          apt-cache policy obs-studio libobs-dev
+          
+          # Install development libraries from Ubuntu repositories
+          sudo apt-get install -y \
+            libobs-dev=30.0.2+dfsg-3build1 \
+            libobs0=30.0.2+dfsg-3build1
+          
+          # Install OBS Studio from PPA
+          sudo apt-get install -y \
+            obs-studio=31.0.3-0obsproject1~noble
+          
+          # Verify installation
+          echo "Checking installed OBS packages:"
+          dpkg -l | grep obs
+          
+          # Find and verify libobs.pc location
+          echo "Searching for libobs.pc..."
+          find /usr -name "libobs.pc" -type f
+          
+          # List contents of pkgconfig directories
+          echo "Contents of pkgconfig directories:"
+          ls -la /usr/lib/x86_64-linux-gnu/pkgconfig/
+          ls -la /usr/lib/pkgconfig/
+          
+          # Set PKG_CONFIG_PATH
+          echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig" >> $GITHUB_ENV
+          
+          # Find and set LIBOBS_PATH
+          OBS_LIB_PATH=$(find /usr -name "libobs.so*" -type f | head -n 1)
+          if [ -n "$OBS_LIB_PATH" ]; then
+            echo "Found OBS library at: $OBS_LIB_PATH"
+            echo "LIBOBS_PATH=$(dirname "$OBS_LIB_PATH")" >> $GITHUB_ENV
+          else
+            echo "Error: Could not find OBS library"
+            exit 1
+          fi
+          
+          # Print environment variables
+          echo "Environment variables:"
+          env | grep -E "PKG_CONFIG|LIBOBS"
+          
+      - name: Install OBS Studio Development Libraries 📚
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
           # Install build dependencies
