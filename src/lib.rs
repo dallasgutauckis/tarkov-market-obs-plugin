@@ -2,7 +2,7 @@ use std::ffi::CString;
 use std::os::raw::{c_char, c_void};
 use std::sync::Mutex;
 use obs_sys::*;
-use obs_text_type::*;
+use obs_text::*;
 
 // OBS constants
 const OBS_SOURCE_VIDEO: u32 = 1;
