@@ -167,7 +167,7 @@ jobs:
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
           # Install OBS Studio and development libraries using Homebrew
-          brew install obs-studio
+          brew install --cask obs-studio
           
           # Set environment variables
           echo "LIBOBS_PATH=/opt/homebrew/lib" >> $GITHUB_ENV
@@ -175,7 +175,7 @@ jobs:
           
           # Verify installation
           echo "Checking installed OBS packages:"
-          brew list | grep obs
+          brew list --cask | grep obs
           
           # Find and verify libobs.pc location
           echo "Searching for libobs.pc..."
