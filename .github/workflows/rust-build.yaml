@@ -167,7 +167,7 @@ jobs:
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
           # Install build dependencies
-          brew install cmake ninja qt@6 swig
+          brew install cmake qt@6 swig
 
           # Add Qt to PATH
           echo "/opt/homebrew/opt/qt@6/bin" >> $GITHUB_PATH
@@ -188,12 +188,12 @@ jobs:
                 -DENABLE_UI=OFF \
                 -DENABLE_SCRIPTING=OFF \
                 -DQTDIR=/opt/homebrew/opt/qt@6 \
-                -GNinja \
+                -G Xcode \
                 ..
 
           # Build and install
-          ninja
-          sudo ninja install
+          xcodebuild -configuration RelWithDebInfo
+          sudo xcodebuild -configuration RelWithDebInfo install
           
           # Set environment variables
           echo "LIBOBS_PATH=/usr/local/lib" >> $GITHUB_ENV
