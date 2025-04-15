@@ -1,5 +1,6 @@
 use std::ffi::CString;
 use std::os::raw::{c_char, c_void};
+use std::sync::Mutex;
 
 // OBS constants
 const OBS_SOURCE_VIDEO: u32 = 1;
@@ -28,8 +29,19 @@ pub extern "C" fn obs_register_source(_info: *mut obs_source_info) {
     println!("Mock: obs_register_source called");
 }
 
-// Plugin data structure - empty for our simple mock
-struct TarkovPriceOverlayData {}
+// Plugin data structure
+struct TarkovPriceOverlayData {
+    settings: Mutex<Settings>,
+}
+
+#[derive(Default)]
+struct Settings {
+    api_key: String,
+    refresh_interval: u32,
+    font_size: u32,
+    position_x: u32,
+    position_y: u32,
+}
 
 // Plugin API functions
 extern "C" fn tarkov_price_overlay_get_name(_data: *mut c_void) -> *const c_char {
@@ -39,25 +51,56 @@ extern "C" fn tarkov_price_overlay_get_name(_data: *mut c_void) -> *const c_char
 }
 
 extern "C" fn tarkov_price_overlay_create(
-    _settings: *mut c_void,
+    settings: *mut c_void,
     _source: *mut c_void,
 ) -> *mut c_void {
-    let data = Box::new(TarkovPriceOverlayData {});
+    let data = Box::new(TarkovPriceOverlayData {
+        settings: Mutex::new(Settings::default()),
+    });
     Box::into_raw(data) as *mut c_void
 }
 
 extern "C" fn tarkov_price_overlay_destroy(data: *mut c_void) {
     if !data.is_null() {
         unsafe {
-            // We need to drop the box to avoid memory leaks
             drop(Box::from_raw(data as *mut TarkovPriceOverlayData));
         }
     }
 }
 
 extern "C" fn tarkov_price_overlay_get_properties(_data: *mut c_void) -> *mut c_void {
-    // Return null for now - we'll implement properties later
-    std::ptr::null_mut()
+    // Create properties structure
+    let mut props = obs_properties_create();
+    
+    // Add API key text input
+    obs_properties_add_text(
+        props,
+        CString::new("api_key").unwrap().as_ptr(),
+        CString::new("Tarkov Market API Key").unwrap().as_ptr(),
+        obs_text_type::OBS_TEXT_DEFAULT,
+    );
+    
+    // Add refresh interval number input
+    obs_properties_add_int(
+        props,
+        CString::new("refresh_interval").unwrap().as_ptr(),
+        CString::new("Price Refresh Interval (seconds)").unwrap().as_ptr(),
+        1,
+        3600,
+        1,
+    );
+    
+    // Add font size number input
+    obs_properties_add_int(
+        props,
+        CString::new("font_size").unwrap().as_ptr(),
+        CString::new("Font Size").unwrap().as_ptr(),
+        8,
+        72,
+        1,
+    );
+    
+    props
 }
 
 #[no_mangle]
@@ -65,7 +108,7 @@ pub extern "C" fn obs_module_load() -> bool {
     // Create and register our source
     let mut info = obs_source_info {
         id: CString::new("tarkov_price_overlay").unwrap().into_raw(),
-        type_: OBS_SOURCE_TYPE_FILTER,
+        type_: OBS_SOURCE_VIDEO, // Changed from FILTER to VIDEO
         output_flags: OBS_SOURCE_VIDEO | OBS_SOURCE_ASYNC,
         get_name: Some(tarkov_price_overlay_get_name),
         create: Some(tarkov_price_overlay_create),
@@ -80,7 +123,6 @@ pub extern "C" fn obs_module_load() -> bool {
         obs_register_source(&mut info);
     }
 
-    // Print a message to show the plugin is loading
     eprintln!("Tarkov Price Overlay plugin loaded successfully!");
     true
 }

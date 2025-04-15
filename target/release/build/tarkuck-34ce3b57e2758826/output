@@ -1,0 +1,5 @@
+cargo:rerun-if-changed=build.rs
+Target: aarch64-apple-darwin
+Host: aarch64-apple-darwin
+cargo:rustc-cdylib-link-arg=-Wl,-install_name,@rpath/libtarkuck.dylib
+Output directory: /Users/dallas/Projects/tarkuck/target/release/build/tarkuck-34ce3b57e2758826/out

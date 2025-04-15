@@ -1,0 +1,1 @@
+{"rustc":5357548097637079788,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[1938718775218452094,"build_script_build",false,3941963039575791492]],"local":[{"RerunIfChanged":{"output":"release/build/tarkuck-34ce3b57e2758826/output","paths":["build.rs"]}}],"rustflags":[],"config":0,"compile_kind":0}
