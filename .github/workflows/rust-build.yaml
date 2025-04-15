@@ -110,22 +110,11 @@ jobs:
       - name: Install OBS Studio Development Libraries 📚
         if: ${{ matrix.os == 'ubuntu-24.04' }}
         run: |
-          # Add OBS Studio PPA
-          sudo add-apt-repository -y ppa:obsproject/obs-studio
-          sudo apt-get update
-          
-          # List available OBS packages and versions
-          echo "Available OBS packages and versions:"
-          apt-cache policy obs-studio libobs-dev
-          
           # Install development libraries and dependencies
           sudo apt-get install -y \
             libobs-dev=30.0.2+dfsg-3build1 \
             libobs0=30.0.2+dfsg-3build1 \
-            obs-studio=31.0.3-0obsproject1~noble \
-            libobs-frontend-api-dev \
-            libobs-scripting-dev \
-            libobs-opengl-dev
+            obs-studio=31.0.3-0obsproject1~noble
           
           # Verify installation
           echo "Checking installed OBS packages:"
