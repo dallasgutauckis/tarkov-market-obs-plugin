@@ -16,6 +16,7 @@
 !LICENSE
 !README.md
 !Cargo.toml
+!INSTALLATION.md
 
 # Exclude lock files
 *.lock.json
