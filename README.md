@@ -1,7 +1,84 @@
 # Tarkov Price Overlay
 
+A Rust plugin for OBS Studio that displays Tarkov market prices.
 
-Tarkov Price Overlay is an OBS Studio plugin that automatically detects items in Escape from Tarkov and displays their current market prices in real-time. This helps players make quick decisions about which items to loot based on their market value.
+## Prerequisites
+
+- [Rust](https://www.rust-lang.org/tools/install) (latest stable)
+- [OBS Studio](https://obsproject.com/) (latest version)
+- [pre-commit](https://pre-commit.com/) (for code formatting)
+
+## Installation
+
+### From Source
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/tarkov-price-overlay.git
+   cd tarkov-price-overlay
+   ```
+
+2. Install pre-commit hooks:
+   ```bash
+   ./scripts/install-pre-commit.sh
+   ```
+
+3. Build the plugin:
+   ```bash
+   cargo build --release
+   ```
+
+4. Install the plugin:
+   ```bash
+   ./install_to_obs.sh
+   ```
+
+### From Release
+
+Download the appropriate package for your platform from the [releases page](https://github.com/yourusername/tarkov-price-overlay/releases) and follow the installation instructions in the package.
+
+## Usage
+
+1. Open OBS Studio
+2. Add a new Browser Source
+3. Set the URL to `http://localhost:8080`
+4. Configure the source size and position as needed
+
+## Development
+
+### Code Formatting
+
+This project uses pre-commit hooks to ensure consistent code formatting. The hooks are automatically installed when you run `./scripts/install-pre-commit.sh`. They will run automatically before each commit, but you can also run them manually:
+
+```bash
+pre-commit run --all-files
+```
+
+### Building
+
+To build the plugin in debug mode:
+
+```bash
+cargo build
+```
+
+To build in release mode:
+
+```bash
+cargo build --release
+```
+
+### Testing
+
+To run the tests:
+
+```bash
+cargo test
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Features
 
@@ -11,37 +88,6 @@ Tarkov Price Overlay is an OBS Studio plugin that automatically detects items in
 - **Minimum value threshold**: Only show prices for items above a certain value
 - **Performance optimized**: Minimal impact on game and streaming performance
 - **Automatic template downloading**: One-click download of all item templates from the API
-
-## Installation
-
-### Prerequisites
-
-- OBS Studio (version 27.0 or higher)
-- Escape from Tarkov
-- A Tarkov Market API key (get one at [tarkov-market.app](https://tarkov-market.app/))
-
-### Install Steps
-
-1. Download the latest release from the [Releases](https://github.com/yourusername/tarkov-price-overlay/releases) page
-2. Extract the zip file to your OBS plugins directory:
-   - Windows: `C:\Program Files\obs-studio\obs-plugins\64bit`
-   - macOS: `/Applications/OBS.app/Contents/PlugIns`
-   - Linux: `/usr/lib/obs-plugins` or `~/.config/obs-studio/plugins`
-3. Restart OBS Studio
-
-## Usage
-
-1. Add a Game Capture source for Escape from Tarkov
-2. Right-click on the source and select Filters
-3. Click the "+" button and select "Tarkov Item Price Overlay"
-4. Enter your Tarkov Market API key
-5. Click "Download Item Templates" to get all the latest item images
-6. Configure the settings to your preference:
-   - Minimum Value Threshold: Only show items above this value
-   - Detection Threshold: Adjust sensitivity of item detection
-   - Enable Highlighting: Toggle item highlighting
-   - Enable Tooltips: Toggle price tooltips
-   - Customize colors and font sizes
 
 ## Configuration
 
