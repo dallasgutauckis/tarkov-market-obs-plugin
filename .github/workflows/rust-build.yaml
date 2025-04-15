@@ -174,20 +174,29 @@ jobs:
           fi
           
           # Install OBS Studio and development libraries
-          brew install obs-studio
+          brew install --cask obs-studio
           
           # Find and verify libobs location
           echo "Searching for OBS libraries..."
+          find /Applications/OBS.app -name "libobs*" -type f
           find /opt/homebrew -name "libobs*" -type f
           
           # Set LIBOBS_PATH for macOS
-          OBS_LIB_PATH=$(find /opt/homebrew -name "libobs.dylib" -type f | head -n 1)
+          OBS_LIB_PATH=$(find /Applications/OBS.app -name "libobs.dylib" -type f | head -n 1)
           if [ -n "$OBS_LIB_PATH" ]; then
             echo "Found OBS library at: $OBS_LIB_PATH"
             echo "LIBOBS_PATH=$(dirname "$OBS_LIB_PATH")" >> $GITHUB_ENV
           else
-            echo "Error: Could not find OBS library"
-            exit 1
+            echo "Error: Could not find OBS library in OBS.app"
+            # Try finding in Homebrew Cellar
+            OBS_LIB_PATH=$(find /opt/homebrew -name "libobs.dylib" -type f | head -n 1)
+            if [ -n "$OBS_LIB_PATH" ]; then
+              echo "Found OBS library at: $OBS_LIB_PATH"
+              echo "LIBOBS_PATH=$(dirname "$OBS_LIB_PATH")" >> $GITHUB_ENV
+            else
+              echo "Error: Could not find OBS library"
+              exit 1
+            fi
           fi
           
           # Print environment variables
