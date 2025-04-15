@@ -210,11 +210,17 @@ jobs:
           sudo apt-get update
           # Install OBS Studio and development libraries
           sudo apt-get install -y obs-studio libobs-dev libobs-ui-dev
-          # List installed OBS files
-          dpkg -L libobs-dev | grep pkgconfig
-          # Set PKG_CONFIG_PATH to include all possible pkg-config directories
-          echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib64/pkgconfig" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH set to: $PKG_CONFIG_PATH"
+          # Find and verify libobs.pc location
+          echo "Searching for libobs.pc..."
+          find /usr -name "libobs.pc" -type f
+          # List contents of pkgconfig directories
+          echo "Contents of pkgconfig directories:"
+          ls -la /usr/lib/x86_64-linux-gnu/pkgconfig/
+          ls -la /usr/lib/pkgconfig/
+          # Set PKG_CONFIG_PATH based on actual location
+          OBS_PC_PATH=$(find /usr -name "libobs.pc" -type f | head -n 1 | xargs dirname)
+          echo "Found libobs.pc at: $OBS_PC_PATH"
+          echo "PKG_CONFIG_PATH=$OBS_PC_PATH" >> $GITHUB_ENV
           # Verify pkg-config can find libobs
           pkg-config --libs --cflags libobs
 
