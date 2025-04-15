@@ -116,12 +116,14 @@ jobs:
           sudo add-apt-repository -y ppa:obsproject/obs-studio
           sudo apt-get update
           
+          # List available OBS packages
+          echo "Available OBS packages:"
+          apt-cache search obs-studio
+          
           # Install OBS Studio and development libraries
           sudo apt-get install -y \
             obs-studio \
-            libobs-dev \
-            libobs0 \
-            libobs0-dev
+            libobs-dev
 
           # Verify installation
           echo "Checking installed OBS packages:"
