@@ -120,6 +120,17 @@ jobs:
             cargo build --target ${{ matrix.target }}
           fi
           
+      - name: Debug Build Output
+        run: |
+          echo "Build configuration: ${{ needs.check-event.outputs.config }}"
+          echo "Target directory contents:"
+          ls -la target/${{ matrix.target }}/${{ needs.check-event.outputs.config }}
+          if [[ "${{ matrix.target }}" == *"-apple-"* ]]; then
+            echo "Expected library name: lib${{ needs.check-event.outputs.pluginName }}.dylib"
+          else
+            echo "Expected library name: lib${{ needs.check-event.outputs.pluginName }}.so"
+          fi
+          
       - name: Run Tests
         run: |
           if [[ "${{ needs.check-event.outputs.config }}" == "release" ]]; then
@@ -132,6 +143,7 @@ jobs:
         if: ${{ fromJSON(needs.check-event.outputs.package) }}
         run: |
           mkdir -p dist
+          echo "Creating package for ${{ matrix.target }}"
           if [[ "${{ matrix.os }}" == "ubuntu-24.04" ]]; then
             tar -czvf dist/${{ needs.check-event.outputs.pluginName }}-${{ needs.check-event.outputs.pluginVersion }}-${{ matrix.target }}.tar.gz \
               -C target/${{ matrix.target }}/${{ needs.check-event.outputs.config }} lib${{ needs.check-event.outputs.pluginName }}.so
