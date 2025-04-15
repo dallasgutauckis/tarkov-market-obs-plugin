@@ -222,97 +222,41 @@ jobs:
 
       - name: Install OBS Studio Development Libraries 📚
         run: |
-          # Install build dependencies
+          # Add OBS Studio PPA
+          sudo add-apt-repository -y ppa:obsproject/obs-studio
           sudo apt-get update
+          
+          # Install OBS Studio and development libraries
           sudo apt-get install -y \
-            build-essential \
-            cmake \
-            git \
-            libx11-dev \
-            libgl1-mesa-dev \
-            libpulse-dev \
-            libxcomposite-dev \
-            libxinerama-dev \
-            libv4l-dev \
-            libudev-dev \
-            libfreetype6-dev \
-            libfontconfig1-dev \
-            libx264-dev \
-            libxcb-xinerama0-dev \
-            libxcb-shm0-dev \
-            libxcb-xinput0-dev \
-            libxcb-randr0-dev \
-            libxcb-composite0-dev \
-            libxcb-util-dev \
-            libx11-xcb-dev \
-            libxcb-render-util0-dev \
-            libxcb-ewmh-dev \
-            libcurl4-openssl-dev \
-            libjansson-dev \
-            libspeexdsp-dev \
-            libluajit-5.1-dev \
-            libx264-dev \
-            libxcb-xinerama0-dev \
-            libxcb-shm0-dev \
-            libxcb-xinput0-dev \
-            libxcb-randr0-dev \
-            libxcb-composite0-dev \
-            libxcb-util-dev \
-            libx11-xcb-dev \
-            libxcb-render-util0-dev \
-            libxcb-ewmh-dev \
-            libcurl4-openssl-dev \
-            libjansson-dev \
-            libspeexdsp-dev \
-            libluajit-5.1-dev
+            obs-studio \
+            libobs-dev \
+            libobs-ui-dev \
+            libobs0 \
+            libobs0-dev \
+            libobs-0.0.0 \
+            libobs-0.0.0-dev
 
-          # Clone and build OBS Studio
-          git clone --recursive https://github.com/obsproject/obs-studio.git
-          cd obs-studio
-          mkdir build && cd build
-          cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_BROWSER=OFF -DUNIX_STRUCTURE=1 ..
-          make -j4
-          sudo make install
-          sudo ldconfig
-
+          # Verify installation
+          echo "Checking installed OBS packages:"
+          dpkg -l | grep obs
+          
           # Find and verify libobs.pc location
           echo "Searching for libobs.pc..."
           find /usr -name "libobs.pc" -type f
+          
           # List contents of pkgconfig directories
           echo "Contents of pkgconfig directories:"
           ls -la /usr/lib/x86_64-linux-gnu/pkgconfig/
           ls -la /usr/lib/pkgconfig/
-          ls -la /usr/local/lib/pkgconfig/
-          # Set PKG_CONFIG_PATH based on actual location
-          OBS_PC_PATH=$(find /usr -name "libobs.pc" -type f | head -n 1 | xargs dirname)
-          echo "Found libobs.pc at: $OBS_PC_PATH"
-          echo "PKG_CONFIG_PATH=$OBS_PC_PATH:/usr/local/lib/pkgconfig" >> $GITHUB_ENV
+          
+          # Set PKG_CONFIG_PATH
+          echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig" >> $GITHUB_ENV
+          
           # Verify pkg-config can find libobs
+          echo "Testing pkg-config:"
           pkg-config --libs --cflags libobs
-          # If libobs.pc is not found, create a symlink
-          if [ ! -f "/usr/lib/x86_64-linux-gnu/pkgconfig/libobs.pc" ]; then
-            echo "Creating symlink for libobs.pc..."
-            sudo mkdir -p /usr/lib/x86_64-linux-gnu/pkgconfig/
-            sudo ln -s "$OBS_PC_PATH/libobs.pc" /usr/lib/x86_64-linux-gnu/pkgconfig/libobs.pc
-          fi
-          # Verify pkg-config can find libobs after symlink
-          pkg-config --libs --cflags libobs
-          # Set environment variables for cargo build
-          echo "CARGO_PKG_CONFIG_PATH=$OBS_PC_PATH:/usr/local/lib/pkgconfig" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=$OBS_PC_PATH:/usr/local/lib/pkgconfig" >> $GITHUB_ENV
-          # Verify the environment variables are set
-          echo "Environment variables:"
-          env | grep PKG_CONFIG
-          # List all installed OBS Studio packages
-          echo "Installed OBS Studio packages:"
-          dpkg -l | grep obs
-          # Verify library files exist
-          echo "Checking for OBS Studio library files:"
-          find /usr -name "libobs.so*" -type f
-          # Print pkg-config debug information
-          echo "pkg-config debug information:"
-          pkg-config --debug libobs
-          # Set LIBOBS_PATH for obs-sys
+          
+          # Find and set LIBOBS_PATH
           OBS_LIB_PATH=$(find /usr -name "libobs.so*" -type f | head -n 1)
           if [ -n "$OBS_LIB_PATH" ]; then
             echo "Found OBS library at: $OBS_LIB_PATH"
@@ -321,6 +265,10 @@ jobs:
             echo "Error: Could not find OBS library"
             exit 1
           fi
+          
+          # Print environment variables
+          echo "Environment variables:"
+          env | grep -E "PKG_CONFIG|LIBOBS"
 
       - uses: actions/cache/restore@v4
         id: ccache-cache
