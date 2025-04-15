@@ -171,7 +171,7 @@ jobs:
           
           # Download and extract OBS dependencies
           echo "Downloading OBS dependencies..."
-          curl -L -o obs-deps.tar.gz https://github.com/obsproject/obs-deps/releases/download/2023-11-01/obs-deps-macos-arm64-2023-11-01.tar.gz
+          curl -L -o obs-deps.tar.gz https://github.com/obsproject/obs-deps/releases/download/2023-11-01/obs-deps-macos-arm64.tar.gz
           if [ ! -f obs-deps.tar.gz ]; then
             echo "Error: Failed to download OBS dependencies"
             exit 1
