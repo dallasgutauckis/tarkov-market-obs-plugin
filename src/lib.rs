@@ -33,10 +33,15 @@ struct TarkovPriceOverlayData {}
 
 // Plugin API functions
 extern "C" fn tarkov_price_overlay_get_name(_data: *mut c_void) -> *const c_char {
-    CString::new("Tarkov Item Price Overlay").unwrap().into_raw()
+    CString::new("Tarkov Item Price Overlay")
+        .unwrap()
+        .into_raw()
 }
 
-extern "C" fn tarkov_price_overlay_create(_settings: *mut c_void, _source: *mut c_void) -> *mut c_void {
+extern "C" fn tarkov_price_overlay_create(
+    _settings: *mut c_void,
+    _source: *mut c_void,
+) -> *mut c_void {
     let data = Box::new(TarkovPriceOverlayData {});
     Box::into_raw(data) as *mut c_void
 }
@@ -51,13 +56,15 @@ extern "C" fn tarkov_price_overlay_destroy(data: *mut c_void) {
 }
 
 extern "C" fn tarkov_price_overlay_get_properties(_data: *mut c_void) -> *mut c_void {
+    // Return null for now - we'll implement properties later
     std::ptr::null_mut()
 }
 
 #[no_mangle]
 pub extern "C" fn obs_module_load() -> bool {
+    // Create and register our source
     let mut info = obs_source_info {
-        id: CString::new("tarkov-price-overlay").unwrap().into_raw(),
+        id: CString::new("tarkov_price_overlay").unwrap().into_raw(),
         type_: OBS_SOURCE_TYPE_FILTER,
         output_flags: OBS_SOURCE_VIDEO | OBS_SOURCE_ASYNC,
         get_name: Some(tarkov_price_overlay_get_name),
@@ -68,11 +75,11 @@ pub extern "C" fn obs_module_load() -> bool {
         video_render: None,
         _padding: [0; 20],
     };
-    
+
     unsafe {
         obs_register_source(&mut info);
     }
-    
+
     // Print a message to show the plugin is loading
     eprintln!("Tarkov Price Overlay plugin loaded successfully!");
     true
@@ -80,27 +87,32 @@ pub extern "C" fn obs_module_load() -> bool {
 
 #[no_mangle]
 pub extern "C" fn obs_module_ver() -> u32 {
-    // Version in the format MAJOR * 10000 + MINOR * 100 + PATCH
-    10000 + 1 * 100 + 0 // 1.01.0
+    // Return version 1.0.0
+    0x010000
 }
 
-// Required by OBS
 #[no_mangle]
 pub extern "C" fn obs_module_set_pointer(_ptr: *mut c_void) {}
 
 #[no_mangle]
 pub extern "C" fn obs_module_name() -> *const c_char {
-    CString::new("Tarkov Item Price Overlay").unwrap().into_raw()
+    CString::new("Tarkov Item Price Overlay")
+        .unwrap()
+        .into_raw()
 }
 
 #[no_mangle]
 pub extern "C" fn obs_module_description() -> *const c_char {
-    CString::new("Shows item prices from Tarkov Market API").unwrap().into_raw()
+    CString::new("Shows item prices from Tarkov Market API")
+        .unwrap()
+        .into_raw()
 }
 
 #[no_mangle]
 pub extern "C" fn obs_module_author() -> *const c_char {
-    CString::new("Tarkov Price Overlay Developers").unwrap().into_raw()
+    CString::new("Tarkov Price Overlay Developers")
+        .unwrap()
+        .into_raw()
 }
 
 // Support functions for OBS
@@ -112,5 +124,5 @@ pub extern "C" fn obs_module_set_locale(_locale: *const c_char) {}
 
 #[no_mangle]
 pub extern "C" fn obs_module_unload() {
-    eprintln!("Tarkov Price Overlay plugin unloaded!");
+    // Cleanup if needed
 }
