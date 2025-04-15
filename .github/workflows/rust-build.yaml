@@ -1,51 +1,212 @@
-  - name: Install OBS Studio Development Libraries 📚
-    if: ${{ matrix.os == 'ubuntu-24.04' }}
-    run: |
-      # Add OBS Studio PPA
-      sudo add-apt-repository -y ppa:obsproject/obs-studio
-      sudo apt-get update
-      
-      # List all available OBS Studio packages
-      echo "Available OBS Studio packages:"
-      apt-cache search obs-studio
-      echo "Available libobs packages:"
-      apt-cache search libobs
-      
-      # Install OBS Studio and development libraries
-      sudo apt-get install -y \
-        obs-studio \
-        libobs-dev
+name: Rust Build and Test
+on:
+  workflow_call:
+    outputs:
+      pluginName:
+        description: Project name detected from Cargo.toml
+        value: ${{ jobs.check-event.outputs.pluginName }}
+jobs:
+  check-event:
+    name: Check GitHub Event Data 🔎
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    outputs:
+      package: ${{ steps.setup.outputs.package }}
+      config: ${{ steps.setup.outputs.config }}
+      commitHash: ${{ steps.setup.outputs.commitHash }}
+      pluginName: ${{ steps.setup.outputs.pluginName }}
+      pluginVersion: ${{ steps.setup.outputs.pluginVersion }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Debug Directory Structure
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "GitHub workspace: $GITHUB_WORKSPACE"
+          echo "Repository contents:"
+          ls -la
+          echo "Parent directory contents:"
+          ls -la ..
+          echo "Root directory contents:"
+          ls -la /
+          echo "Home directory contents:"
+          ls -la ~
+          
+      - name: Check Event Data ☑️
+        id: setup
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          : Check Event Data ☑️
+          if [[ "${RUNNER_DEBUG}" ]]; then set -x; fi
 
-      # Verify installation
-      echo "Checking installed OBS packages:"
-      dpkg -l | grep obs
-      
-      # Find and verify libobs.pc location
-      echo "Searching for libobs.pc..."
-      find /usr -name "libobs.pc" -type f
-      
-      # List contents of pkgconfig directories
-      echo "Contents of pkgconfig directories:"
-      ls -la /usr/lib/x86_64-linux-gnu/pkgconfig/
-      ls -la /usr/lib/pkgconfig/
-      
-      # Set PKG_CONFIG_PATH
-      echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig" >> $GITHUB_ENV
-      
-      # Verify pkg-config can find libobs
-      echo "Testing pkg-config:"
-      pkg-config --libs --cflags libobs
-      
-      # Find and set LIBOBS_PATH
-      OBS_LIB_PATH=$(find /usr -name "libobs.so*" -type f | head -n 1)
-      if [ -n "$OBS_LIB_PATH" ]; then
-        echo "Found OBS library at: $OBS_LIB_PATH"
-        echo "LIBOBS_PATH=$(dirname "$OBS_LIB_PATH")" >> $GITHUB_ENV
-      else
-        echo "Error: Could not find OBS library"
-        exit 1
-      fi
-      
-      # Print environment variables
-      echo "Environment variables:"
-      env | grep -E "PKG_CONFIG|LIBOBS" 
+          # Ensure we're in the correct directory
+          cd $GITHUB_WORKSPACE
+          echo "Current directory after cd: $(pwd)"
+          echo "Current directory contents:"
+          ls -la
+          echo "Cargo.toml contents:"
+          cat Cargo.toml || echo "Cargo.toml not found"
+
+          case "${GITHUB_EVENT_NAME}" in
+            pull_request)
+              config_data=('package:false' 'config:debug')
+              if gh pr view ${{ github.event.number }} --json labels \
+                | jq -e -r '.labels[] | select(.name == "Seeking Testers")' > /dev/null; then
+                config_data[0]='package:true'
+              fi
+              ;;
+            push)
+              config_data=('package:true' 'config:release')
+              ;;
+            workflow_dispatch)
+              config_data=('package:false' 'config:debug')
+              ;;
+            schedule)
+              config_data=('package:true' 'config:release')
+              ;;
+            *) ;;
+          esac
+
+          for config in "${config_data[@]}"; do
+            IFS=':' read -r key value <<< "${config}"
+            echo "${key}=${value}" >> $GITHUB_OUTPUT
+          done
+          echo "commitHash=${GITHUB_SHA:0:9}" >> $GITHUB_OUTPUT
+
+          # Extract name and version from Cargo.toml
+          plugin_name=$(grep -m 1 'name =' Cargo.toml | cut -d '"' -f 2)
+          plugin_version=$(grep -m 1 'version =' Cargo.toml | cut -d '"' -f 2)
+          
+          echo "pluginName=${plugin_name}" >> $GITHUB_OUTPUT
+          echo "pluginVersion=${plugin_version}" >> $GITHUB_OUTPUT
+
+  rust-build:
+    name: Build for ${{ matrix.os }} 🦀
+    needs: check-event
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+          
+      - name: Install OBS Studio Development Libraries 📚
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
+        run: |
+          # Add OBS Studio PPA
+          sudo add-apt-repository -y ppa:obsproject/obs-studio
+          sudo apt-get update
+          
+          # Install OBS Studio and development libraries
+          sudo apt-get install -y \
+            obs-studio \
+            libobs-dev \
+            libobs0 \
+            libobs0-dev
+
+          # Verify installation
+          echo "Checking installed OBS packages:"
+          dpkg -l | grep obs
+          
+          # Find and verify libobs.pc location
+          echo "Searching for libobs.pc..."
+          find /usr -name "libobs.pc" -type f
+          
+          # List contents of pkgconfig directories
+          echo "Contents of pkgconfig directories:"
+          ls -la /usr/lib/x86_64-linux-gnu/pkgconfig/
+          ls -la /usr/lib/pkgconfig/
+          
+          # Set PKG_CONFIG_PATH
+          echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig" >> $GITHUB_ENV
+          
+          # Verify pkg-config can find libobs
+          echo "Testing pkg-config:"
+          pkg-config --libs --cflags libobs
+          
+          # Find and set LIBOBS_PATH
+          OBS_LIB_PATH=$(find /usr -name "libobs.so*" -type f | head -n 1)
+          if [ -n "$OBS_LIB_PATH" ]; then
+            echo "Found OBS library at: $OBS_LIB_PATH"
+            echo "LIBOBS_PATH=$(dirname "$OBS_LIB_PATH")" >> $GITHUB_ENV
+          else
+            echo "Error: Could not find OBS library"
+            exit 1
+          fi
+          
+          # Print environment variables
+          echo "Environment variables:"
+          env | grep -E "PKG_CONFIG|LIBOBS"
+          
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        
+      - name: Build
+        run: |
+          if [[ "${{ needs.check-event.outputs.config }}" == "release" ]]; then
+            PKG_CONFIG_PATH=${{ env.PKG_CONFIG_PATH }} \
+            LIBOBS_PATH=${{ env.LIBOBS_PATH }} \
+            cargo build --release --target ${{ matrix.target }}
+          else
+            PKG_CONFIG_PATH=${{ env.PKG_CONFIG_PATH }} \
+            LIBOBS_PATH=${{ env.LIBOBS_PATH }} \
+            cargo build --target ${{ matrix.target }}
+          fi
+          
+      - name: Debug Build Output
+        run: |
+          echo "Build configuration: ${{ needs.check-event.outputs.config }}"
+          echo "Target directory contents:"
+          ls -la target/${{ matrix.target }}/${{ needs.check-event.outputs.config }}
+          if [[ "${{ matrix.target }}" == *"-apple-"* ]]; then
+            echo "Expected library name: libtarkov_price_overlay.dylib"
+          else
+            echo "Expected library name: libtarkov_price_overlay.so"
+          fi
+          
+      - name: Run Tests
+        run: |
+          if [[ "${{ needs.check-event.outputs.config }}" == "release" ]]; then
+            cargo test --release --target ${{ matrix.target }}
+          else
+            cargo test --target ${{ matrix.target }}
+          fi
+          
+      - name: Package
+        if: ${{ fromJSON(needs.check-event.outputs.package) }}
+        run: |
+          mkdir -p dist
+          echo "Creating package for ${{ matrix.target }}"
+          if [[ "${{ matrix.os }}" == "ubuntu-24.04" ]]; then
+            tar -czvf dist/${{ needs.check-event.outputs.pluginName }}-${{ needs.check-event.outputs.pluginVersion }}-${{ matrix.target }}.tar.gz \
+              -C target/${{ matrix.target }}/${{ needs.check-event.outputs.config }} libtarkov_price_overlay.so
+          elif [[ "${{ matrix.target }}" == *"-apple-"* ]]; then
+            tar -czvf dist/${{ needs.check-event.outputs.pluginName }}-${{ needs.check-event.outputs.pluginVersion }}-${{ matrix.target }}.tar.gz \
+              -C target/${{ matrix.target }}/${{ needs.check-event.outputs.config }} libtarkov_price_overlay.dylib
+          fi
+          
+      - name: Upload Artifacts 📡
+        uses: actions/upload-artifact@v4
+        if: ${{ fromJSON(needs.check-event.outputs.package) }}
+        with:
+          name: ${{ needs.check-event.outputs.pluginName }}-${{ needs.check-event.outputs.pluginVersion }}-${{ matrix.target }}-${{ needs.check-event.outputs.commitHash }}
+          path: dist/${{ needs.check-event.outputs.pluginName }}-${{ needs.check-event.outputs.pluginVersion }}-${{ matrix.target }}.tar.gz 
