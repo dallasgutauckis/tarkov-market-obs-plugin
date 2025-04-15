@@ -104,6 +104,19 @@ jobs:
           if (( #remove_formulas )) brew uninstall --ignore-dependencies ${remove_formulas}
           print '::endgroup::'
 
+          print '::group::Install OBS Studio'
+          brew install obs-studio
+          # Find OBS Studio library location
+          OBS_LIB_PATH=$(find /opt/homebrew/lib -name "libobs.dylib" -o -name "libobs.0.dylib" | head -n 1)
+          if [[ -n "$OBS_LIB_PATH" ]]; then
+            echo "Found OBS library at: $OBS_LIB_PATH"
+            echo "LIBOBS_PATH=$(dirname "$OBS_LIB_PATH")" >> $GITHUB_ENV
+          else
+            echo "Error: Could not find OBS library"
+            exit 1
+          fi
+          print '::endgroup::'
+
           local product_name
           local product_version
           read -r product_name product_version <<< \
@@ -136,6 +149,10 @@ jobs:
 
       - name: Build Plugin 🧱
         uses: ./.github/actions/build-plugin
+        env:
+          LIBOBS_PATH: ${{ env.LIBOBS_PATH }}
+          RUST_BACKTRACE: 1
+          RUST_LOG: debug
         with:
           target: macos-universal
           config: ${{ needs.check-event.outputs.config }}
@@ -237,6 +254,15 @@ jobs:
           # Verify the environment variables are set
           echo "Environment variables:"
           env | grep PKG_CONFIG
+          # List all installed OBS Studio packages
+          echo "Installed OBS Studio packages:"
+          dpkg -l | grep obs
+          # Verify library files exist
+          echo "Checking for OBS Studio library files:"
+          find /usr -name "libobs.so*" -type f
+          # Print pkg-config debug information
+          echo "pkg-config debug information:"
+          pkg-config --debug libobs
 
       - uses: actions/cache/restore@v4
         id: ccache-cache
@@ -251,9 +277,12 @@ jobs:
         env:
           PKG_CONFIG_PATH: ${{ env.PKG_CONFIG_PATH }}
           CARGO_PKG_CONFIG_PATH: ${{ env.CARGO_PKG_CONFIG_PATH }}
+          RUST_BACKTRACE: 1
+          RUST_LOG: debug
         with:
           target: x86_64
           config: ${{ needs.check-event.outputs.config }}
+          debug: true
 
       - name: Package Plugin 📀
         uses: ./.github/actions/package-plugin
