@@ -263,6 +263,15 @@ jobs:
           # Print pkg-config debug information
           echo "pkg-config debug information:"
           pkg-config --debug libobs
+          # Set LIBOBS_PATH for obs-sys
+          OBS_LIB_PATH=$(find /usr -name "libobs.so*" -type f | head -n 1)
+          if [ -n "$OBS_LIB_PATH" ]; then
+            echo "Found OBS library at: $OBS_LIB_PATH"
+            echo "LIBOBS_PATH=$(dirname "$OBS_LIB_PATH")" >> $GITHUB_ENV
+          else
+            echo "Error: Could not find OBS library"
+            exit 1
+          fi
 
       - uses: actions/cache/restore@v4
         id: ccache-cache
@@ -277,6 +286,7 @@ jobs:
         env:
           PKG_CONFIG_PATH: ${{ env.PKG_CONFIG_PATH }}
           CARGO_PKG_CONFIG_PATH: ${{ env.CARGO_PKG_CONFIG_PATH }}
+          LIBOBS_PATH: ${{ env.LIBOBS_PATH }}
           RUST_BACKTRACE: 1
           RUST_LOG: debug
         with:
