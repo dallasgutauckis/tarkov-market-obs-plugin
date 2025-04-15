@@ -1,6 +1,8 @@
 use std::ffi::CString;
 use std::os::raw::{c_char, c_void};
 use std::sync::Mutex;
+use obs_sys::*;
+use obs_text_type::*;
 
 // OBS constants
 const OBS_SOURCE_VIDEO: u32 = 1;
@@ -16,10 +18,10 @@ struct obs_source_info {
     get_name: Option<extern "C" fn(*mut c_void) -> *const c_char>,
     create: Option<extern "C" fn(*mut c_void, *mut c_void) -> *mut c_void>,
     destroy: Option<extern "C" fn(*mut c_void)>,
-    get_properties: Option<extern "C" fn(*mut c_void) -> *mut c_void>,
+    get_properties: Option<extern "C" fn(*mut c_void) -> *mut obs_properties_t>,
     update: Option<extern "C" fn(*mut c_void, *mut c_void)>,
     video_render: Option<extern "C" fn(*mut c_void, *mut c_void)>,
-    _padding: [u64; 20], // Add padding to match the full struct size
+    _padding: [u64; 20],
 }
 
 // For testing only - OBS would provide this function
@@ -68,39 +70,38 @@ extern "C" fn tarkov_price_overlay_destroy(data: *mut c_void) {
     }
 }
 
-extern "C" fn tarkov_price_overlay_get_properties(_data: *mut c_void) -> *mut c_void {
-    // Create properties structure
-    let mut props = obs_properties_create();
-    
-    // Add API key text input
-    obs_properties_add_text(
-        props,
-        CString::new("api_key").unwrap().as_ptr(),
-        CString::new("Tarkov Market API Key").unwrap().as_ptr(),
-        obs_text_type::OBS_TEXT_DEFAULT,
-    );
-    
-    // Add refresh interval number input
-    obs_properties_add_int(
-        props,
-        CString::new("refresh_interval").unwrap().as_ptr(),
-        CString::new("Price Refresh Interval (seconds)").unwrap().as_ptr(),
-        1,
-        3600,
-        1,
-    );
-    
-    // Add font size number input
-    obs_properties_add_int(
-        props,
-        CString::new("font_size").unwrap().as_ptr(),
-        CString::new("Font Size").unwrap().as_ptr(),
-        8,
-        72,
-        1,
-    );
-    
-    props
+#[no_mangle]
+pub extern "C" fn get_properties(_data: *mut c_void) -> *mut obs_properties_t {
+    unsafe {
+        let props = obs_properties_create();
+        
+        obs_properties_add_text(
+            props,
+            CString::new("api_key").unwrap().as_ptr(),
+            CString::new("Tarkov Market API Key").unwrap().as_ptr(),
+            OBS_TEXT_DEFAULT,
+        );
+
+        obs_properties_add_int(
+            props,
+            CString::new("update_interval").unwrap().as_ptr(),
+            CString::new("Update Interval (seconds)").unwrap().as_ptr(),
+            1,
+            3600,
+            1,
+        );
+
+        obs_properties_add_int(
+            props,
+            CString::new("font_size").unwrap().as_ptr(),
+            CString::new("Font Size").unwrap().as_ptr(),
+            8,
+            72,
+            1,
+        );
+
+        props
+    }
 }
 
 #[no_mangle]
@@ -108,12 +109,12 @@ pub extern "C" fn obs_module_load() -> bool {
     // Create and register our source
     let mut info = obs_source_info {
         id: CString::new("tarkov_price_overlay").unwrap().into_raw(),
-        type_: OBS_SOURCE_VIDEO, // Changed from FILTER to VIDEO
+        type_: OBS_SOURCE_VIDEO,
         output_flags: OBS_SOURCE_VIDEO | OBS_SOURCE_ASYNC,
         get_name: Some(tarkov_price_overlay_get_name),
         create: Some(tarkov_price_overlay_create),
         destroy: Some(tarkov_price_overlay_destroy),
-        get_properties: Some(tarkov_price_overlay_get_properties),
+        get_properties: Some(get_properties),
         update: None,
         video_render: None,
         _padding: [0; 20],
@@ -129,7 +130,6 @@ pub extern "C" fn obs_module_load() -> bool {
 
 #[no_mangle]
 pub extern "C" fn obs_module_ver() -> u32 {
-    // Return version 1.0.0
     0x010000
 }
 
