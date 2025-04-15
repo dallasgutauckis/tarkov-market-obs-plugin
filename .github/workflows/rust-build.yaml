@@ -118,14 +118,14 @@ jobs:
           echo "Available OBS packages and versions:"
           apt-cache policy obs-studio libobs-dev
           
-          # Install development libraries from Ubuntu repositories
+          # Install development libraries and dependencies
           sudo apt-get install -y \
             libobs-dev=30.0.2+dfsg-3build1 \
-            libobs0=30.0.2+dfsg-3build1
-          
-          # Install OBS Studio from PPA
-          sudo apt-get install -y \
-            obs-studio=31.0.3-0obsproject1~noble
+            libobs0=30.0.2+dfsg-3build1 \
+            obs-studio=31.0.3-0obsproject1~noble \
+            libobs-frontend-api-dev \
+            libobs-scripting-dev \
+            libobs-opengl-dev
           
           # Verify installation
           echo "Checking installed OBS packages:"
@@ -156,6 +156,10 @@ jobs:
           # Print environment variables
           echo "Environment variables:"
           env | grep -E "PKG_CONFIG|LIBOBS"
+          
+          # Verify pkg-config can find libobs
+          echo "Testing pkg-config:"
+          pkg-config --libs --cflags libobs
           
       - name: Install OBS Studio Development Libraries 📚
         if: ${{ matrix.os == 'macos-latest' }}
