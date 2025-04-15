@@ -94,8 +94,6 @@ jobs:
           - os: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
           - os: macos-latest
-            target: x86_64-apple-darwin
-          - os: macos-latest
             target: aarch64-apple-darwin
     runs-on: ${{ matrix.os }}
     steps:
@@ -110,70 +108,21 @@ jobs:
           targets: ${{ matrix.target }}
           
       - name: Install OBS Studio Development Libraries 📚
-        if: ${{ matrix.os == 'ubuntu-24.04' }}
-        run: |
-          # Add OBS Studio PPA
-          sudo add-apt-repository -y ppa:obsproject/obs-studio
-          sudo apt-get update
-          
-          # List available OBS packages and versions
-          echo "Available OBS packages and versions:"
-          apt-cache policy obs-studio libobs-dev
-          
-          # Install development libraries from Ubuntu repositories
-          sudo apt-get install -y \
-            libobs-dev=30.0.2+dfsg-3build1 \
-            libobs0=30.0.2+dfsg-3build1
-          
-          # Install OBS Studio from PPA
-          sudo apt-get install -y \
-            obs-studio=31.0.3-0obsproject1~noble
-
-          # Verify installation
-          echo "Checking installed OBS packages:"
-          dpkg -l | grep obs
-          
-          # Find and verify libobs.pc location
-          echo "Searching for libobs.pc..."
-          find /usr -name "libobs.pc" -type f
-          
-          # List contents of pkgconfig directories
-          echo "Contents of pkgconfig directories:"
-          ls -la /usr/lib/x86_64-linux-gnu/pkgconfig/
-          ls -la /usr/lib/pkgconfig/
-          
-          # Set PKG_CONFIG_PATH
-          echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig" >> $GITHUB_ENV
-          
-          # Verify pkg-config can find libobs
-          echo "Testing pkg-config:"
-          pkg-config --libs --cflags libobs
-          
-          # Find and set LIBOBS_PATH
-          OBS_LIB_PATH=$(find /usr -name "libobs.so*" -type f | head -n 1)
-          if [ -n "$OBS_LIB_PATH" ]; then
-            echo "Found OBS library at: $OBS_LIB_PATH"
-            echo "LIBOBS_PATH=$(dirname "$OBS_LIB_PATH")" >> $GITHUB_ENV
-          else
-            echo "Error: Could not find OBS library"
-            exit 1
-          fi
-          
-          # Print environment variables
-          echo "Environment variables:"
-          env | grep -E "PKG_CONFIG|LIBOBS"
-          
-      - name: Install OBS Studio Development Libraries 📚
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
           # Install build dependencies
-          brew install cmake qt@6 swig
+          brew install cmake qt@6 swig ffmpeg
           
           # Add Qt to PATH
           echo "/opt/homebrew/opt/qt@6/bin" >> $GITHUB_PATH
           export LDFLAGS="-L/opt/homebrew/opt/qt@6/lib"
           export CPPFLAGS="-I/opt/homebrew/opt/qt@6/include"
           export PKG_CONFIG_PATH="/opt/homebrew/opt/qt@6/lib/pkgconfig"
+          
+          # Download and extract OBS dependencies
+          curl -L -o obs-deps.tar.gz https://github.com/obsproject/obs-deps/releases/download/2023-11-01/obs-deps-2023-11-01-macos-arm64.tar.gz
+          mkdir -p obs-deps
+          tar -xzf obs-deps.tar.gz -C obs-deps
           
           # Clone OBS Studio with specific version
           git clone --recursive https://github.com/obsproject/obs-studio.git
@@ -190,6 +139,7 @@ jobs:
                 -DENABLE_UI=OFF \
                 -DENABLE_SCRIPTING=OFF \
                 -DQTDIR=/opt/homebrew/opt/qt@6 \
+                -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/obs-deps" \
                 -G Xcode \
                 ..
           
@@ -199,7 +149,7 @@ jobs:
           
           # Set environment variables
           echo "LIBOBS_PATH=/usr/local/lib" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/opt/homebrew/opt/qt@6/lib/pkgconfig" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/opt/homebrew/opt/qt@6/lib/pkgconfig:$GITHUB_WORKSPACE/obs-deps/lib/pkgconfig" >> $GITHUB_ENV
           
           # Verify installation
           echo "Checking installed OBS packages:"
