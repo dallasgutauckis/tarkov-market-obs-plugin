@@ -118,10 +118,11 @@ jobs:
           echo "Available OBS packages and versions:"
           apt-cache policy obs-studio libobs-dev
           
-          # Install development libraries and dependencies
-          sudo apt-get install -y \
-            libobs-dev \
-            obs-studio
+          # Install development libraries first
+          sudo apt-get install -y libobs-dev
+          
+          # Then install OBS Studio
+          sudo apt-get install -y obs-studio
           
           # Verify installation
           echo "Checking installed OBS packages:"
