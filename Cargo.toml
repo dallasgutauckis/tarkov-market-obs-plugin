@@ -12,8 +12,8 @@ name = "tarkov_price_overlay"
 
 [dependencies]
 libc = "0.2"
-obs-sys = { git = "https://github.com/obsproject/obs-studio.git", package = "obs-sys" }
-obs-text-type = { git = "https://github.com/obsproject/obs-studio.git", package = "obs-text-type" }
+obs-sys = "0.1.0"
+obs-text-type = "0.1.0"
 
 [build-dependencies]
 pkg-config = "0.3"
