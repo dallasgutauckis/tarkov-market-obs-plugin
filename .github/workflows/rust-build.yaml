@@ -180,9 +180,17 @@ jobs:
           git clone --recursive https://github.com/obsproject/obs-studio.git
           cd obs-studio
           mkdir build && cd build
-          cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release ..
-          make -j$(sysctl -n hw.ncpu)
-          sudo make install
+          
+          # Configure with Xcode generator
+          cmake -G Xcode \
+            -DCMAKE_INSTALL_PREFIX=/usr/local \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            ..
+          
+          # Build using xcodebuild
+          xcodebuild -configuration Release
+          sudo xcodebuild -configuration Release install
           
           # Find and verify libobs location
           echo "Searching for OBS libraries..."
