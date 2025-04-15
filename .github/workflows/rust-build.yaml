@@ -166,38 +166,24 @@ jobs:
       - name: Install OBS Studio Development Libraries 📚
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
-          # Install build dependencies
-          brew install cmake qt@6 swig
-
-          # Add Qt to PATH
-          echo "/opt/homebrew/opt/qt@6/bin" >> $GITHUB_PATH
-          export LDFLAGS="-L/opt/homebrew/opt/qt@6/lib"
-          export CPPFLAGS="-I/opt/homebrew/opt/qt@6/include"
-          export PKG_CONFIG_PATH="/opt/homebrew/opt/qt@6/lib/pkgconfig"
-
-          # Clone OBS Studio
-          git clone --recursive https://github.com/obsproject/obs-studio.git
-          cd obs-studio
-
-          # Create build directory and configure
-          mkdir build && cd build
-          cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-                -DENABLE_BROWSER=OFF \
-                -DENABLE_WEBSOCKET=OFF \
-                -DENABLE_PLUGINS=OFF \
-                -DENABLE_UI=OFF \
-                -DENABLE_SCRIPTING=OFF \
-                -DQTDIR=/opt/homebrew/opt/qt@6 \
-                -G Xcode \
-                ..
-
-          # Build and install
-          xcodebuild -configuration RelWithDebInfo
-          sudo xcodebuild -configuration RelWithDebInfo install
+          # Install OBS Studio and development libraries using Homebrew
+          brew install obs-studio
           
           # Set environment variables
-          echo "LIBOBS_PATH=/usr/local/lib" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/opt/homebrew/opt/qt@6/lib/pkgconfig" >> $GITHUB_ENV
+          echo "LIBOBS_PATH=/opt/homebrew/lib" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=/opt/homebrew/lib/pkgconfig" >> $GITHUB_ENV
+          
+          # Verify installation
+          echo "Checking installed OBS packages:"
+          brew list | grep obs
+          
+          # Find and verify libobs.pc location
+          echo "Searching for libobs.pc..."
+          find /opt/homebrew -name "libobs.pc" -type f
+          
+          # Verify pkg-config can find libobs
+          echo "Testing pkg-config:"
+          pkg-config --libs --cflags libobs
           
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
