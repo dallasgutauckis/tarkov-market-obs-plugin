@@ -8,6 +8,7 @@ license = "MIT"
 
 [lib]
 crate-type = ["cdylib"]
+name = "tarkov_price_overlay"
 
 [dependencies]
 # No dependencies needed for the mock plugin

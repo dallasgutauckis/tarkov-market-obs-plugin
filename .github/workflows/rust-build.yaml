@@ -126,9 +126,9 @@ jobs:
           echo "Target directory contents:"
           ls -la target/${{ matrix.target }}/${{ needs.check-event.outputs.config }}
           if [[ "${{ matrix.target }}" == *"-apple-"* ]]; then
-            echo "Expected library name: lib${{ needs.check-event.outputs.pluginName }}.dylib"
+            echo "Expected library name: libtarkov_price_overlay.dylib"
           else
-            echo "Expected library name: lib${{ needs.check-event.outputs.pluginName }}.so"
+            echo "Expected library name: libtarkov_price_overlay.so"
           fi
           
       - name: Run Tests
@@ -146,10 +146,10 @@ jobs:
           echo "Creating package for ${{ matrix.target }}"
           if [[ "${{ matrix.os }}" == "ubuntu-24.04" ]]; then
             tar -czvf dist/${{ needs.check-event.outputs.pluginName }}-${{ needs.check-event.outputs.pluginVersion }}-${{ matrix.target }}.tar.gz \
-              -C target/${{ matrix.target }}/${{ needs.check-event.outputs.config }} lib${{ needs.check-event.outputs.pluginName }}.so
+              -C target/${{ matrix.target }}/${{ needs.check-event.outputs.config }} libtarkov_price_overlay.so
           elif [[ "${{ matrix.target }}" == *"-apple-"* ]]; then
             tar -czvf dist/${{ needs.check-event.outputs.pluginName }}-${{ needs.check-event.outputs.pluginVersion }}-${{ matrix.target }}.tar.gz \
-              -C target/${{ matrix.target }}/${{ needs.check-event.outputs.config }} lib${{ needs.check-event.outputs.pluginName }}.dylib
+              -C target/${{ matrix.target }}/${{ needs.check-event.outputs.config }} libtarkov_price_overlay.dylib
           fi
           
       - name: Upload Artifacts 📡
