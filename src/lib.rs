@@ -9,6 +9,11 @@ const OBS_SOURCE_VIDEO: u32 = 1;
 const OBS_SOURCE_TYPE_FILTER: u32 = 2;
 const OBS_SOURCE_ASYNC: u32 = 4;
 
+// OBS text type constants
+const OBS_TEXT_DEFAULT: u32 = 0;
+const OBS_TEXT_PASSWORD: u32 = 1;
+const OBS_TEXT_MULTILINE: u32 = 2;
+
 // Basic OBS structs for FFI
 #[repr(C)]
 struct obs_source_info {
