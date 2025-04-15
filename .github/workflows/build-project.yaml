@@ -207,6 +207,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libobs-dev libobs-ui-dev
+          # Set PKG_CONFIG_PATH to include OBS Studio pkg-config directory
+          echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH set to: $PKG_CONFIG_PATH"
+          # Verify pkg-config can find libobs
+          pkg-config --libs --cflags libobs
 
       - uses: actions/cache/restore@v4
         id: ccache-cache
