@@ -205,7 +205,7 @@ jobs:
           
           # Find and verify libobs.pc location
           echo "Searching for libobs.pc..."
-          find /usr/local -name "libobs.pc" -type f
+          find /usr/local/lib -name "libobs.pc" -type f
           
           # Verify pkg-config can find libobs
           echo "Testing pkg-config:"
