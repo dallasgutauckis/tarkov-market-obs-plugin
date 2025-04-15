@@ -122,8 +122,8 @@ jobs:
           
           # Install OBS Studio and development libraries
           sudo apt-get install -y \
-            obs-studio \
-            libobs-dev=30.0.2+dfsg-3build1
+            obs-studio=31.0.3-0obsproject1~noble \
+            libobs-dev=31.0.3-0obsproject1~noble
 
           # Verify installation
           echo "Checking installed OBS packages:"
