@@ -1,8 +1,8 @@
+use obs_sys::*;
+use obs_text::*;
 use std::ffi::CString;
 use std::os::raw::{c_char, c_void};
 use std::sync::Mutex;
-use obs_sys::*;
-use obs_text::*;
 
 // OBS constants
 const OBS_SOURCE_VIDEO: u32 = 1;
@@ -79,7 +79,7 @@ extern "C" fn tarkov_price_overlay_destroy(data: *mut c_void) {
 pub extern "C" fn get_properties(_data: *mut c_void) -> *mut obs_properties_t {
     unsafe {
         let props = obs_properties_create();
-        
+
         obs_properties_add_text(
             props,
             CString::new("api_key").unwrap().as_ptr(),
