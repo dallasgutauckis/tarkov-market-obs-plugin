@@ -2,9 +2,11 @@
 name = "tarkov-price-overlay"
 version = "0.1.0"
 edition = "2021"
-authors = ["Your Name <your.email@example.com>"]
-description = "OBS plugin for Escape from Tarkov item price overlay"
+authors = ["Dallas Gutauckis <dallas@dallasgutauckis.com>"]
+description = "OBS Studio plugin for displaying Tarkov market prices"
 license = "MIT"
+repository = "https://github.com/dallasgutauckis/tarkov-market-obs-plugin"
+readme = "README.md"
 
 [lib]
 crate-type = ["cdylib"]
@@ -12,7 +14,7 @@ name = "tarkov_price_overlay"
 
 [dependencies]
 libc = "0.2"
-obs-sys = "0.1.0"
+obs-sys = "0.3.0"
 
 [build-dependencies]
 pkg-config = "0.3"

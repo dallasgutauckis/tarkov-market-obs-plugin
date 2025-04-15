@@ -223,6 +223,20 @@ jobs:
           echo "PKG_CONFIG_PATH=$OBS_PC_PATH" >> $GITHUB_ENV
           # Verify pkg-config can find libobs
           pkg-config --libs --cflags libobs
+          # If libobs.pc is not found, create a symlink
+          if [ ! -f "/usr/lib/x86_64-linux-gnu/pkgconfig/libobs.pc" ]; then
+            echo "Creating symlink for libobs.pc..."
+            sudo mkdir -p /usr/lib/x86_64-linux-gnu/pkgconfig/
+            sudo ln -s "$OBS_PC_PATH/libobs.pc" /usr/lib/x86_64-linux-gnu/pkgconfig/libobs.pc
+          fi
+          # Verify pkg-config can find libobs after symlink
+          pkg-config --libs --cflags libobs
+          # Set environment variables for cargo build
+          echo "CARGO_PKG_CONFIG_PATH=$OBS_PC_PATH" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=$OBS_PC_PATH" >> $GITHUB_ENV
+          # Verify the environment variables are set
+          echo "Environment variables:"
+          env | grep PKG_CONFIG
 
       - uses: actions/cache/restore@v4
         id: ccache-cache
@@ -234,6 +248,9 @@ jobs:
 
       - name: Build Plugin 🧱
         uses: ./.github/actions/build-plugin
+        env:
+          PKG_CONFIG_PATH: ${{ env.PKG_CONFIG_PATH }}
+          CARGO_PKG_CONFIG_PATH: ${{ env.CARGO_PKG_CONFIG_PATH }}
         with:
           target: x86_64
           config: ${{ needs.check-event.outputs.config }}
